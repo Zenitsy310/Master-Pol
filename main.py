@@ -449,11 +449,11 @@ class AuthDialog(QDialog):
         layout.addWidget(title)
 
         # Поля ввода
-        self.login_input = QLineEdit()
+        self.login_input = QLineEdit("invoker")
         self.login_input.setPlaceholderText("👤 Логин")
         self.login_input.setMinimumHeight(40)
 
-        self.password_input = QLineEdit()
+        self.password_input = QLineEdit("admin1")
         self.password_input.setPlaceholderText("🔒 Пароль")
         self.password_input.setEchoMode(QLineEdit.Password)
         self.password_input.setMinimumHeight(40)
@@ -699,6 +699,39 @@ class MainWindow(QMainWindow):
         self.create_sidebar(self.body_layout)
         self.setup_styles()
 
+    def handle_edit(self, table_name, item_id):
+        """Метод-распределитель для редактирования записей"""
+        if table_name == "partners":
+            self.edit_partner(item_id)
+        elif table_name == "orders":
+            self.edit_order(item_id)
+        elif table_name == "products":
+            # self.edit_product(item_id) # если есть такой метод
+            pass
+        elif table_name == "employees":
+            # self.edit_employee(item_id)
+            pass
+
+    def show_context_menu(self, pos, table, table_name):
+        """Универсальное контекстное меню"""
+        index = table.indexAt(pos)
+        if not index.isValid():
+            return
+
+        row = index.row()
+        # Получаем ID из первой колонки
+        item_id = table.item(row, 0).text()
+
+        menu = QMenu()
+        edit_action = menu.addAction("✏️ Редактировать")
+        delete_action = menu.addAction("🗑️ Удалить")
+
+        action = menu.exec_(table.viewport().mapToGlobal(pos))
+
+        if action == edit_action:
+            self.handle_edit(table_name, item_id)
+        elif action == delete_action:
+            self.confirm_delete(table_name, item_id, table, row)
     def search_partners(self, text):
         """Функция живого поиска по таблице"""
         for i in range(self.partners_table.rowCount()):
@@ -984,7 +1017,10 @@ class MainWindow(QMainWindow):
             table.setItem(i, 3, QTableWidgetItem(f"{o['TotalAmount']:,.0f} ₽"))
             table.setItem(i, 4, QTableWidgetItem(str(o['OrderDate'])))
         orders_layout.addWidget(table)
-
+        # Пример для таблицы партнеров:
+        table.setContextMenuPolicy(Qt.CustomContextMenu)
+        table.customContextMenuRequested.connect(
+            lambda pos: self.show_context_menu(pos, table, "orders"))
         activity_group = QGroupBox("Последняя активность")
         activity_layout = QVBoxLayout(activity_group)
         recent_sales = self.db.execute_query("""
@@ -1079,7 +1115,10 @@ class MainWindow(QMainWindow):
                 height: 45px;
             }
         """)
-
+        # Пример для таблицы партнеров:
+        self.partners_table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.partners_table.customContextMenuRequested.connect(
+            lambda pos: self.show_context_menu(pos, self.partners_table, "partners"))
         self.partners_table.setColumnCount(7)
         self.partners_table.setHorizontalHeaderLabels([
             "ID", "Компания", "Тип", "Рейтинг", "Телефон", "Скидка %", "Действия"

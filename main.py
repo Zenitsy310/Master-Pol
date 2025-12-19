@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QLineEdit, QTextEdit, QComboBox, QDateEdit,
                              QSpinBox, QDoubleSpinBox, QFormLayout, QGroupBox,
                              QTabWidget, QMessageBox, QFrame, QSplitter, QDialog,
-                             QSizePolicy, QToolButton, QMenu)
+                             QSizePolicy, QToolButton, QMenu, QScrollArea)
 from PyQt5.QtCore import Qt, QDate, QTimer
 from PyQt5.QtGui import QFont, QColor, QIcon, QPixmap
 
@@ -366,7 +366,7 @@ def style_table(table: QTableWidget):
     table.setSelectionBehavior(QTableWidget.SelectRows)
     table.setEditTriggers(QTableWidget.NoEditTriggers)
     table.verticalHeader().setVisible(False)
-    table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+    table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
 
 class AuthDialog(QDialog):
@@ -436,41 +436,127 @@ class AuthDialog(QDialog):
 
     def create_login_form(self):
         widget = QWidget()
-        layout = QFormLayout(widget)
-        layout.setSpacing(18)
-        layout.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
-        self.login_input = QLineEdit("invoker")
-        self.login_input.setPlaceholderText("Введите логин")
-        self.password_input = QLineEdit("admin1")
-        self.password_input.setPlaceholderText("Введите пароль")
+        # Основной вертикальный макет
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(40, 30, 40, 30)
+        layout.setSpacing(15)
+        layout.setAlignment(Qt.AlignCenter)
+
+        # Заголовок внутри формы
+        title = QLabel("АВТОРИЗАЦИЯ")
+        title.setStyleSheet("font-size: 18pt; font-weight: bold; color: #67BA80; margin-bottom: 10px;")
+        title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
+
+        # Поля ввода
+        self.login_input = QLineEdit()
+        self.login_input.setPlaceholderText("👤 Логин")
+        self.login_input.setMinimumHeight(40)
+
+        self.password_input = QLineEdit()
+        self.password_input.setPlaceholderText("🔒 Пароль")
         self.password_input.setEchoMode(QLineEdit.Password)
-        layout.addRow("Логин:", self.login_input)
-        layout.addRow("Пароль:", self.password_input)
-        submit_btn = QPushButton("Войти")
-        submit_btn.setProperty("class", "primary")
+        self.password_input.setMinimumHeight(40)
+
+        # Общий стиль для инпутов
+        input_style = """
+            QLineEdit {
+                border: 2px solid #67BA80;
+                border-radius: 10px;
+                padding: 5px 10px;
+                background-color: white;
+                font-size: 11pt;
+            }
+            QLineEdit:focus {
+                border: 2px solid #559d6a;
+                background-color: #FDFDFD;
+            }
+        """
+        self.login_input.setStyleSheet(input_style)
+        self.password_input.setStyleSheet(input_style)
+
+        layout.addWidget(self.login_input)
+        layout.addWidget(self.password_input)
+
+        # Кнопка входа
+        submit_btn = QPushButton("ВОЙТИ")
+        submit_btn.setCursor(Qt.PointingHandCursor)
+        submit_btn.setMinimumHeight(45)
+        submit_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #67BA80;
+                color: white;
+                border-radius: 10px;
+                font-weight: bold;
+                font-size: 12pt;
+                margin-top: 15px;
+            }
+            QPushButton:hover {
+                background-color: #559d6a;
+            }
+        """)
         submit_btn.clicked.connect(self.login)
         layout.addWidget(submit_btn)
+
         return widget
 
     def create_register_form(self):
         widget = QWidget()
-        layout = QFormLayout(widget)
-        layout.setSpacing(18)
-        layout.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
-        self.reg_login = QLineEdit()
-        self.reg_password = QLineEdit()
-        self.reg_password.setEchoMode(QLineEdit.Password)
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(40, 20, 40, 30)
+        layout.setSpacing(12)
+        layout.setAlignment(Qt.AlignCenter)
+
+        title = QLabel("РЕГИСТРАЦИЯ")
+        title.setStyleSheet("font-size: 18pt; font-weight: bold; color: #67BA80; margin-bottom: 5px;")
+        title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
+
+        # Создание полей
         self.reg_fullname = QLineEdit()
-        self.reg_login.setPlaceholderText("Уникальный логин")
-        self.reg_password.setPlaceholderText("Пароль (мин. 6 символов)")
-        self.reg_fullname.setPlaceholderText("Ваше полное имя")
-        layout.addRow("Логин:", self.reg_login)
-        layout.addRow("Пароль:", self.reg_password)
-        layout.addRow("ФИО:", self.reg_fullname)
-        submit_btn = QPushButton("Зарегистрироваться")
-        submit_btn.setProperty("class", "primary")
+        self.reg_fullname.setPlaceholderText("👤 Ваше полное имя (ФИО)")
+
+        self.reg_login = QLineEdit()
+        self.reg_login.setPlaceholderText("🔑 Придумайте логин")
+
+        self.reg_password = QLineEdit()
+        self.reg_password.setPlaceholderText("🔒 Пароль (минимум 6 символов)")
+        self.reg_password.setEchoMode(QLineEdit.Password)
+
+        # Применяем стиль и высоту ко всем полям сразу
+        input_style = """
+            QLineEdit {
+                border: 2px solid #67BA80;
+                border-radius: 10px;
+                padding: 5px 10px;
+                background-color: white;
+                height: 35px;
+            }
+        """
+        for field in [self.reg_fullname, self.reg_login, self.reg_password]:
+            field.setStyleSheet(input_style)
+            layout.addWidget(field)
+
+        # Кнопка регистрации
+        submit_btn = QPushButton("СОЗДАТЬ АККАУНТ")
+        submit_btn.setCursor(Qt.PointingHandCursor)
+        submit_btn.setMinimumHeight(45)
+        submit_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #67BA80;
+                color: white;
+                border-radius: 10px;
+                font-weight: bold;
+                font-size: 11pt;
+                margin-top: 10px;
+            }
+            QPushButton:hover {
+                background-color: #559d6a;
+            }
+        """)
         submit_btn.clicked.connect(self.register)
         layout.addWidget(submit_btn)
+
         return widget
 
     def toggle_form(self):
@@ -562,7 +648,7 @@ class MainWindow(QMainWindow):
         # Настройка окна
         self.setWindowTitle("Мастер пол — Управление производством")
         self.setWindowIcon(QIcon("./res/Мастер пол.ico"))
-        self.resize(1200, 800)
+        self.resize(1200, 900)
 
         # Главный виджет
         main_widget = QWidget()
@@ -602,12 +688,15 @@ class MainWindow(QMainWindow):
         self.main_layout.addWidget(header_widget)
 
         # --- НИЖНЯЯ ЧАСТЬ (Сайдбар + Контент) ---
+        # --- НИЖНЯЯ ЧАСТЬ (Контент слева, Сайдбар справа) ---
         self.body_layout = QHBoxLayout()
         self.main_layout.addLayout(self.body_layout)
 
-        # Здесь далее вызывайте создание сайдбара и stacked_widget
-        self.create_sidebar(self.body_layout)
+        # СНАЧАЛА добавляем область контента
         self.create_content_area(self.body_layout)
+
+        # ЗАТЕМ добавляем боковое меню
+        self.create_sidebar(self.body_layout)
         self.setup_styles()
 
     def search_partners(self, text):
@@ -620,6 +709,17 @@ class MainWindow(QMainWindow):
                     match = True
                     break
             self.partners_table.setRowHidden(i, not match)
+
+    def universal_search(self, text, table):
+        """Универсальная фильтрация для любой таблицы"""
+        for i in range(table.rowCount()):
+            match = False
+            for j in range(table.columnCount()):
+                item = table.item(i, j)
+                if item and text.lower() in item.text().lower():
+                    match = True
+                    break
+            table.setRowHidden(i, not match)
 
     def create_header(self, layout):
         header_frame = QFrame()
@@ -690,16 +790,26 @@ class MainWindow(QMainWindow):
             }
 
             /* Кнопки целевого действия */
+            /* Глобальный стиль кнопок — только зеленый и белый */
             QPushButton {
                 background-color: #67BA80;
-                color: #FFFFFF;
+                color: white;
+                border: none;
                 border-radius: 5px;
-                padding: 8px 15px;
+                padding: 10px;
+                font-family: 'Segoe UI';
                 font-weight: bold;
-                min-height: 30px;
             }
+
             QPushButton:hover {
                 background-color: #559d6a;
+            }
+
+            /* Если есть второстепенные кнопки, их можно сделать бежевыми с зеленой рамкой */
+            QPushButton#secondary {
+                background-color: #F4E8D3;
+                color: #333333;
+                border: 1px solid #67BA80;
             }
 
             /* Боковая панель */
@@ -859,7 +969,7 @@ class MainWindow(QMainWindow):
         table = QTableWidget()
         table.setColumnCount(5)
         table.setHorizontalHeaderLabels(["ID", "Партнер", "Статус", "Сумма", "Дата"])
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
         orders = self.db.execute_query("""
             SELECT o.OrderID, p.CompanyName, o.Status, o.TotalAmount, o.OrderDate 
@@ -923,7 +1033,8 @@ class MainWindow(QMainWindow):
                 background-color: #FDFDFD;
             }
         """)
-        self.partner_search.textChanged.connect(self.search_partners)
+        # В методе create_partners_screen
+        self.partner_search.textChanged.connect(lambda text: self.universal_search(text, self.partners_table))
         control_panel.addWidget(self.partner_search)
 
         control_panel.addStretch()
@@ -973,7 +1084,7 @@ class MainWindow(QMainWindow):
         self.partners_table.setHorizontalHeaderLabels([
             "ID", "Компания", "Тип", "Рейтинг", "Телефон", "Скидка %", "Действия"
         ])
-        self.partners_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.partners_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.partners_table.verticalHeader().setVisible(False)  # Убираем номера строк для чистоты
 
         layout.addWidget(self.partners_table)
@@ -1013,7 +1124,7 @@ class MainWindow(QMainWindow):
                 discount = self.db.get_partner_discount(p.get('id'))
                 self.partners_table.setItem(i, 5, QTableWidgetItem(f"{discount}%"))
 
-            self.partners_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+            self.partners_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         except Exception as e:
             print(f"Ошибка: {e}")
     def add_partner(self):
@@ -1048,7 +1159,7 @@ class MainWindow(QMainWindow):
 
         table = QTableWidget(len(sales), 4)
         table.setHorizontalHeaderLabels(["Дата", "Продукция", "Количество", "Сумма"])
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         table.setEditTriggers(QTableWidget.NoEditTriggers)
         table.setSelectionBehavior(QTableWidget.SelectRows)
 
@@ -1074,25 +1185,43 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout(widget)
         layout.setSpacing(20)
         tabs = QTabWidget()
+
         catalog_tab = QWidget()
         catalog_layout = QVBoxLayout(catalog_tab)
         catalog_layout.setSpacing(15)
+
         filter_widget = QWidget()
         filter_layout = QHBoxLayout(filter_widget)
+
+        # 1. Сначала СОЗДАЕМ объекты
         self.product_type_combo = QComboBox()
         self.product_type_combo.addItems(["Все типы", "Ламинат", "Паркет", "Линолеум", "Ковролин"])
-        self.product_search = QLineEdit()
-        self.product_search.setPlaceholderText("Поиск продукции...")
+
+        self.product_search = QLineEdit()  # ЭТОЙ СТРОКИ НЕ ХВАТАЛО!
+
+        # 2. Теперь НАСТРАИВАЕМ их
+        self.product_search.setPlaceholderText("🔍 Поиск продукции...")
+
+        # 3. Добавляем в макет
         filter_layout.addWidget(QLabel("Тип:"))
         filter_layout.addWidget(self.product_type_combo)
         filter_layout.addWidget(self.product_search)
         filter_layout.addStretch()
+
         catalog_layout.addWidget(filter_widget)
+
+        # 4. Создаем таблицу (ВАЖНО: создаем ДО подключения поиска)
         self.products_table = QTableWidget()
         self.products_table.setColumnCount(6)
         self.products_table.setHorizontalHeaderLabels([
             "Артикул", "Наименование", "Тип", "Минимальная цена", "Время производства", "Себестоимость"
         ])
+
+        # 5. Теперь подключаем поиск (когда и поиск, и таблица уже существуют)
+        self.product_search.textChanged.connect(lambda text: self.universal_search(text, self.products_table))
+        self.product_type_combo.currentTextChanged.connect(
+            lambda text: self.universal_search(text if text != "Все типы" else "", self.products_table))
+
         self.load_products_data()
         catalog_layout.addWidget(self.products_table)
         tabs.addTab(catalog_tab, "Каталог продукции")
@@ -1114,54 +1243,68 @@ class MainWindow(QMainWindow):
 
     def create_orders_screen(self):
         widget = QWidget()
-        layout = QVBoxLayout(widget)
-        layout.setSpacing(20)
+        widget.setObjectName("content_page")
+        main_layout = QVBoxLayout(widget)
+        main_layout.setContentsMargins(10, 10, 10, 10)
 
-        top_panel = QHBoxLayout()
+        # 1. ВЕРХНЯЯ ПАНЕЛЬ
+        top_panel_widget = QWidget()
+        top_panel = QHBoxLayout(top_panel_widget)
+
         self.order_search = QLineEdit()
-        self.order_search.setPlaceholderText("Поиск по ID или партнёру...")
-        self.order_search.textChanged.connect(self.search_orders)
+        self.order_search.setPlaceholderText("🔍 Поиск по номеру или партнёру...")
+        self.order_search.textChanged.connect(lambda text: self.universal_search(text, self.orders_table))
         top_panel.addWidget(self.order_search)
+
         top_panel.addStretch()
-        add_btn = QPushButton("Добавить заявку")
-        add_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #3B82F6;
-                color: #000000;
-                border: 1px solid #3B82F6;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-weight: bold;
-                min-height: 40px;
-            }
-            QPushButton:hover {
-                background-color: #2563EB;
-                color: #FFFFFF;
-            }
-        """)
-        add_btn.setCursor(Qt.PointingHandCursor)
+
+        add_btn = QPushButton("+ ДОБАВИТЬ ЗАЯВКУ")
         add_btn.clicked.connect(self.add_order)
         top_panel.addWidget(add_btn)
-        layout.addLayout(top_panel)
 
-        splitter = QSplitter(Qt.Horizontal)
+        main_layout.addWidget(top_panel_widget)
+
+        # --- РАЗДЕЛИТЕЛЬ (Splitter) ---
+        self.splitter = QSplitter(Qt.Vertical)
+
+        # 2. ТАБЛИЦА ЗАЯВОК (Верхняя часть)
         self.orders_table = QTableWidget()
         self.orders_table.setColumnCount(4)
         self.orders_table.setHorizontalHeaderLabels(["ID", "Партнёр", "Статус", "Сумма"])
         self.orders_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.orders_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.orders_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.orders_table.setEditTriggers(QTableWidget.NoEditTriggers)
+
+        # КРИТИЧЕСКИ ВАЖНАЯ СТРОКА: подключаем обновление деталей при клике
         self.orders_table.itemSelectionChanged.connect(self.show_order_details)
-        splitter.addWidget(self.orders_table)
+
+        self.orders_table.setMinimumHeight(250)
+        self.splitter.addWidget(self.orders_table)
+
+        # 3. ОБЕРТКА ДЛЯ ДЕТАЛЕЙ (Нижняя часть) со СКРОЛЛЕРОМ
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QFrame.NoFrame)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
         self.order_details_widget = QWidget()
+        self.order_details_widget.setObjectName("details_area")
+        # Устанавливаем белый фон области деталей
+        self.order_details_widget.setStyleSheet("background-color: #FFFFFF;")
         self.order_details_layout = QVBoxLayout(self.order_details_widget)
-        welcome = QLabel("Выберите заявку для просмотра деталей")
-        welcome.setStyleSheet("color: #909399; font-style: italic;")
+        self.order_details_layout.setContentsMargins(15, 15, 15, 15)
+
+        welcome = QLabel("Выберите заявку в таблице выше для просмотра деталей")
+        welcome.setStyleSheet("color: #67BA80; font-weight: bold;")
+        welcome.setAlignment(Qt.AlignCenter)
         self.order_details_layout.addWidget(welcome)
-        splitter.addWidget(self.order_details_widget)
-        splitter.setSizes([400, 600])
-        layout.addWidget(splitter)
+
+        scroll_area.setWidget(self.order_details_widget)
+        self.splitter.addWidget(scroll_area)
+
+        self.splitter.setSizes([400, 300])
+        main_layout.addWidget(self.splitter)
         self.stacked_widget.addWidget(widget)
 
     def load_orders_data(self):
@@ -1192,10 +1335,17 @@ class MainWindow(QMainWindow):
             self.orders_table.setItem(r, 3, QTableWidgetItem(f'{o["TotalAmount"]:,.0f} ₽'))
 
     def show_order_details(self):
+        # 1. Полная очистка предыдущего содержимого
         while self.order_details_layout.count():
             item = self.order_details_layout.takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+            elif item.layout():
+                # Рекурсивно удаляем вложенные макеты (например, кнопки)
+                while item.layout().count():
+                    child = item.layout().takeAt(0).widget()
+                    if child: child.deleteLater()
 
         row = self.orders_table.currentRow()
         if row < 0:
@@ -1206,41 +1356,50 @@ class MainWindow(QMainWindow):
 
         try:
             order_id = int(self.orders_table.item(row, 0).text())
-        except:
+        except (AttributeError, ValueError):
             return
 
-        order = self.db.execute_query("""
+        # 2. Получение данных из БД
+        order_data = self.db.execute_query("""
             SELECT o.*, p.CompanyName, p.Phone, p.Email, p.PartnerID
             FROM orders o
             JOIN partners p ON p.PartnerID = o.PartnerID
             WHERE o.OrderID = %s
         """, (order_id,))
 
-        if not order:
-            return
-        order = order[0]
+        if not order_data: return
+        order = order_data[0]
 
+        # 3. Кнопки управления (Зеленые/Бежевые по ТЗ)
         btns = QHBoxLayout()
-        edit_btn = QPushButton("Редактировать")
-        edit_btn.setProperty("class", "secondary")
+        edit_btn = QPushButton("✎ Редактировать")
+        # Используем класс secondary для бежевой кнопки или оставляем стандартную зеленую
         edit_btn.clicked.connect(lambda: self.edit_order(order_id))
-        history_btn = QPushButton("История продаж партнёра")
-        history_btn.setProperty("class", "secondary")
+
+        history_btn = QPushButton("История партнёра")
         history_btn.clicked.connect(lambda: self.show_partner_sales_history(order["PartnerID"], order["CompanyName"]))
+
         btns.addWidget(edit_btn)
         btns.addWidget(history_btn)
+        btns.addStretch()
         self.order_details_layout.addLayout(btns)
 
-        box = QGroupBox(f"Заявка №{order_id}")
+        # 4. Основная информация (Форма)
+        box = QGroupBox(f"Информация о заказе №{order_id}")
+        box.setStyleSheet(
+            "QGroupBox { font-weight: bold; color: #67BA80; border: 1px solid #67BA80; margin-top: 10px; padding-top: 10px; }")
         f = QFormLayout(box)
-        f.addRow("Партнёр:", QLabel(order["CompanyName"]))
-        f.addRow("Телефон:", QLabel(order["Phone"] or "—"))
-        f.addRow("Email:", QLabel(order["Email"] or "—"))
-        f.addRow("Статус:", QLabel(order["Status"]))
-        f.addRow("Сумма:", QLabel(f'{order["TotalAmount"]:,.0f} ₽'))
-        f.addRow("Дата:", QLabel(str(order["OrderDate"])))
+        f.setLabelAlignment(Qt.AlignRight)
+
+        f.addRow("Партнёр:", QLabel(str(order["CompanyName"])))
+        f.addRow("Контакты:", QLabel(f'{order["Phone"] or "—"} | {order["Email"] or "—"}'))
+        f.addRow("Статус:", QLabel(str(order["Status"])))
+        f.addRow("Сумма заказа:", QLabel(f'<b>{order["TotalAmount"]:,.2f} ₽</b>'))
+        f.addRow("Дата создания:", QLabel(str(order["OrderDate"])))
+
         self.order_details_layout.addWidget(box)
 
+        # 5. Таблица состава заказа (ДП)
         items = self.db.execute_query("""
             SELECT pr.Name, oi.Quantity, oi.Price
             FROM orderitems oi
@@ -1249,18 +1408,27 @@ class MainWindow(QMainWindow):
         """, (order_id,))
 
         if items:
+            lbl_items = QLabel("Состав заказа:")
+            lbl_items.setStyleSheet("font-weight: bold; margin-top: 10px;")
+            self.order_details_layout.addWidget(lbl_items)
+
             table = QTableWidget(len(items), 4)
             table.setHorizontalHeaderLabels(["Продукт", "Кол-во", "Цена", "Сумма"])
+            # Заставляем таблицу продуктов занимать всё место и быть бежевой
             table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
             table.setEditTriggers(QTableWidget.NoEditTriggers)
+            table.setMinimumHeight(150)
+
             for i, it in enumerate(items):
                 table.setItem(i, 0, QTableWidgetItem(it["Name"]))
                 table.setItem(i, 1, QTableWidgetItem(str(it["Quantity"])))
                 table.setItem(i, 2, QTableWidgetItem(f'{it["Price"]:,.2f} ₽'))
                 total = it["Quantity"] * it["Price"]
                 table.setItem(i, 3, QTableWidgetItem(f'{total:,.2f} ₽'))
+
             self.order_details_layout.addWidget(table)
 
+        # Распорка в конце, чтобы элементы не расползались по высоте
         self.order_details_layout.addStretch()
 
     def add_order(self):
@@ -1275,23 +1443,49 @@ class MainWindow(QMainWindow):
 
     def create_employees_screen(self):
         widget = QWidget()
+        widget.setObjectName("content_page")  # Привязка к белому фону из setup_styles
         layout = QVBoxLayout(widget)
-        table = QTableWidget()
-        table.setColumnCount(6)
-        table.setHorizontalHeaderLabels(["ФИО", "Должность", "Дата рождения", "Контакты", "Здоровье", "Категория"])
-        employees = self.db.execute_query(
-            "SELECT e.*, c.CategoryName FROM employees e LEFT JOIN employeecategories c ON e.CategoryID = c.CategoryID")
-        table.setRowCount(len(employees))
-        for i, e in enumerate(employees):
-            table.setItem(i, 0, QTableWidgetItem(e['FullName']))
-            table.setItem(i, 1, QTableWidgetItem(e['CategoryName']))
-            table.setItem(i, 2, QTableWidgetItem(str(e['BirthDate'])))
-            table.setItem(i, 3, QTableWidgetItem("Контакты"))
-            table.setItem(i, 4, QTableWidgetItem(e['HealthStatus']))
-            table.setItem(i, 5, QTableWidgetItem(e['CategoryName']))
-        layout.addWidget(table)
-        self.stacked_widget.addWidget(widget)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
 
+        # Заголовок
+        title = QLabel("СПИСОК СОТРУДНИКОВ")
+        title.setStyleSheet("font-size: 16pt; font-weight: bold; color: #333;")
+        layout.addWidget(title)
+
+        # ПОИСК
+        self.emp_search = QLineEdit()
+        self.emp_search.setPlaceholderText("🔍 Поиск по ФИО, должности или категории...")
+        # Подключаем наш универсальный поиск к этой таблице
+        self.emp_search.textChanged.connect(lambda text: self.universal_search(text, self.employees_table))
+        layout.addWidget(self.emp_search)
+
+        # ТАБЛИЦА
+        self.employees_table = QTableWidget()
+        # Убираем внутренние стили таблицы здесь, чтобы работал глобальный setup_styles
+        self.employees_table.setColumnCount(6)
+        self.employees_table.setHorizontalHeaderLabels(
+            ["ФИО", "Должность", "Дата рождения", "Контакты", "Здоровье", "Категория"])
+        self.employees_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.employees_table.verticalHeader().setVisible(False) # Скрываем номера строк для красоты
+
+        # Загрузка данных
+        try:
+            employees = self.db.execute_query(
+                "SELECT e.*, c.CategoryName FROM employees e LEFT JOIN employeecategories c ON e.CategoryID = c.CategoryID")
+            self.employees_table.setRowCount(len(employees))
+            for i, e in enumerate(employees):
+                self.employees_table.setItem(i, 0, QTableWidgetItem(str(e.get('FullName', ''))))
+                self.employees_table.setItem(i, 1, QTableWidgetItem(str(e.get('CategoryName', ''))))
+                self.employees_table.setItem(i, 2, QTableWidgetItem(str(e.get('BirthDate', ''))))
+                self.employees_table.setItem(i, 3, QTableWidgetItem("Показать контакты"))
+                self.employees_table.setItem(i, 4, QTableWidgetItem(str(e.get('HealthStatus', ''))))
+                self.employees_table.setItem(i, 5, QTableWidgetItem(str(e.get('CategoryName', ''))))
+        except Exception as ex:
+            print(f"Ошибка загрузки сотрудников: {ex}")
+
+        layout.addWidget(self.employees_table)
+        self.stacked_widget.addWidget(widget)
     def create_materials_screen(self):
         widget = QWidget()
         layout = QVBoxLayout(widget)
@@ -1303,28 +1497,28 @@ class MainWindow(QMainWindow):
         materials_layout.setSpacing(15)
 
         control_panel = QHBoxLayout()
-        self.material_search = QLineEdit()
-        self.material_search.setPlaceholderText("Поиск материалов...")
+        self.material_search = QLineEdit()  # Проверьте наличие этой строки
+        self.material_search.setPlaceholderText("🔍 Поиск материалов...")
+        self.material_search.textChanged.connect(lambda text: self.universal_search(text, self.materials_table))
         self.material_search.setMinimumWidth(300)
         control_panel.addWidget(self.material_search)
         control_panel.addStretch()
 
+        # Внутри create_materials_screen
         add_btn = QPushButton("Добавить материал")
         add_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #3B82F6;
-                color: #000000;
-                border: 1px solid #3B82F6;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-weight: bold;
-                min-height: 40px;
-            }
-            QPushButton:hover {
-                background-color: #2563EB;
-                color: #FFFFFF;
-            }
-        """)
+                    QPushButton {
+                        background-color: #67BA80; /* Заменили синий на зеленый по ТЗ */
+                        color: #FFFFFF;
+                        border-radius: 6px;
+                        padding: 8px 16px;
+                        font-weight: bold;
+                        min-height: 40px;
+                    }
+                    QPushButton:hover {
+                        background-color: #559d6a; /* Темно-зеленый при наведении */
+                    }
+                """)
         add_btn.setCursor(Qt.PointingHandCursor)
         add_btn.clicked.connect(lambda: QMessageBox.information(self, "Добавление", "Функция добавления материала"))
         control_panel.addWidget(add_btn)
@@ -1335,7 +1529,7 @@ class MainWindow(QMainWindow):
         self.materials_table.setHorizontalHeaderLabels([
             "ID", "Наименование", "Тип", "Поставщик", "Количество", "Мин. запас", "Стоимость", "Статус"
         ])
-        self.materials_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.materials_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.load_materials_data()
         materials_layout.addWidget(self.materials_table)
         tabs.addTab(materials_tab, "Материалы на складе")
@@ -1407,28 +1601,28 @@ class MainWindow(QMainWindow):
         layout.setSpacing(20)
 
         control_panel = QHBoxLayout()
-        self.supplier_search = QLineEdit()
-        self.supplier_search.setPlaceholderText("Поиск поставщиков...")
+        self.supplier_search = QLineEdit()  # Проверьте наличие этой строки
+        self.supplier_search.setPlaceholderText("🔍 Поиск поставщиков...")
+        self.supplier_search.textChanged.connect(lambda text: self.universal_search(text, self.suppliers_table))
         self.supplier_search.setMinimumWidth(300)
         control_panel.addWidget(self.supplier_search)
         control_panel.addStretch()
 
+        # Внутри create_materials_screen
         add_btn = QPushButton("Добавить поставщика")
         add_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #3B82F6;
-                color: #000000;
-                border: 1px solid #3B82F6;
-                border-radius: 6px;
-                padding: 8px 16px;
-                font-weight: bold;
-                min-height: 40px;
-            }
-            QPushButton:hover {
-                background-color: #2563EB;
-                color: #FFFFFF;
-            }
-        """)
+                    QPushButton {
+                        background-color: #67BA80; /* Заменили синий на зеленый по ТЗ */
+                        color: #FFFFFF;
+                        border-radius: 6px;
+                        padding: 8px 16px;
+                        font-weight: bold;
+                        min-height: 40px;
+                    }
+                    QPushButton:hover {
+                        background-color:  #67BA80; /* Темно-зеленый при наведении */
+                    }
+                """)
         add_btn.setCursor(Qt.PointingHandCursor)
         add_btn.clicked.connect(self.add_supplier)
         control_panel.addWidget(add_btn)
